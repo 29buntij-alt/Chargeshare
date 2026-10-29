@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#06111b"><title>ChargeShare</title>
+<style>
+:root{--bg:#06111b;--panel:#0b1d2c;--panel2:#10283a;--line:#1d4054;--green:#19f0a2;--blue:#46c8ff;--white:#f4faff;--muted:#a6bed0;--red:#ff667a}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#0b2534 0%,var(--bg) 52%);color:var(--white);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+header{display:flex;align-items:center;gap:12px;padding:16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#06111bf2;backdrop-filter:blur(12px);z-index:3}
+.logo{height:46px;width:46px;border:1px solid var(--green);border-radius:15px;background:#073d47;display:grid;place-items:center;color:var(--green);font-size:28px;box-shadow:0 0 22px #19f04420}
+.brand{font-size:22px;font-weight:850;letter-spacing:-.7px}.brand span{color:var(--green)}.tag{font-size:11px;color:var(--muted)}
+main{max-width:680px;margin:auto;padding:18px 16px 100px}.eyebrow{font-size:11px;color:var(--green);font-weight:800;letter-spacing:1.7px;text-transform:uppercase}
+h1{font-size:27px;line-height:1.12;margin:7px 0}.sub{color:var(--muted);font-size:13px;line-height:1.55}
+.card{background:linear-gradient(145deg,#0c2030,#081824);border:1px solid var(--line);border-radius:20px;padding:16px;margin:13px 0;box-shadow:0 10px 25px #0002}
+.ring{width:176px;height:176px;border:8px solid var(--green);border-radius:50%;background:#082c30;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:12px auto;box-shadow:0 0 35px #19f0441b,inset 0 0 25px #19f0440d}
+.big{font-size:39px;font-weight:850}.muted{color:var(--muted);font-size:12px}.row{display:flex;align-items:center;gap:12px}.between{justify-content:space-between}.grow{flex:1;min-width:0}
+.avatar{height:43px;width:43px;border-radius:50%;display:grid;place-items:center;background:#123348;border:1px solid var(--green);font-weight:800;flex-shrink:0}
+.name{font-weight:750;font-size:14px}.small{font-size:11px;color:var(--muted);margin-top:4px}.percent{font-size:16px;color:var(--green);font-weight:850}.low{color:var(--red)!important}
+button{border:1px solid var(--green);border-radius:13px;background:var(--green);color:#04151a;font-weight:850;font-size:12px;padding:12px 13px;cursor:pointer;min-height:42px}
+button.secondary{background:transparent;color:var(--green)}button.dim{background:var(--panel2);border-color:var(--line);color:var(--white)}button:active{transform:scale(.98)}
+.actions{display:flex;gap:9px;margin-top:14px}.actions button{flex:1}
+.sectiontitle{font-size:16px;font-weight:800;margin:22px 0 9px}
+.friend{display:flex;align-items:center;gap:11px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:11px;margin:9px 0;cursor:pointer}
+input{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--white);padding:13px;border-radius:13px;margin:8px 0 12px;font:inherit}
+.picks{display:flex;gap:8px;margin:12px 0}.picks button{flex:1;padding:9px 4px}
+.notice{background:#103d34;border:1px solid var(--green);padding:12px;border-radius:13px;font-size:12px;line-height:1.5;margin:12px 0}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:4;background:#071722f5;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:9px 3px calc(8px + env(safe-area-inset-bottom));backdrop-filter:blur(12px)}
+nav button{border:0;background:transparent;color:var(--muted);padding:7px 3px;min-height:48px;flex:1;font-size:10px}nav button.active{color:var(--green)}nav b{display:block;font-size:20px;margin-bottom:3px}
+footer{font-size:10px;color:#7d9bae;line-height:1.5;text-align:center;margin:20px 5px}
+</style>
+</head>
+<body>
+<header><div class="logo">ϟ</div><div><div class="brand">Charge<span>Share</span></div><div class="tag">Share Power. Stay Connected.</div></div></header>
+<main id="app"></main>
+<nav id="nav"></nav>
+<script>
+const friends=[
+{id:1,name:"Alex Johnson",battery:78,online:true,initials:"AJ"},
+{id:2,name:"Taylor Smith",battery:62,online:true,initials:"TS"},
+{id:3,name:"Morgan Lee",battery:15,online:true,initials:"ML"},
+{id:4,name:"Casey Brown",battery:28,online:false,initials:"CB"},
+{id:5,name:"Riley Davis",battery:9,online:true,initials:"RD"}
+];
+let tab="Home",selected=1,amount=10,history=[],requests=[],query="",notice="",displayName="Jamie Smith",share=true;
+const $=s=>document.querySelector(s);
+function btn(label,fn,cls=""){return `<button class="${cls}" onclick="${fn}">${label}</button>`}
+function card(inner){return `<section class="card">${inner}</section>`}
+function friendRow(f){return `<div class="friend" onclick="chooseFriend(${f.id})"><div class="avatar">${f.initials}</div><div class="grow"><div class="name">${f.name}</div><div class="small">${f.online?"● Online":"○ Offline"} · ${f.battery<=20?"Low battery":"Battery status shared"}</div></div><div style="text-align:right"><div class="percent ${f.battery<=20?"low":""}">${f.battery}%</div><div class="small">${selected===f.id?"Selected":"Tap to select"}</div></div></div>`}
+function render(){
+ const app=$("#app"), nav=$("#nav");
+ nav.innerHTML=[["Home","⌂"],["Friends","♧"],["Requests","↗"],["History","◷"],["Settings","⚙"]].map(([n,i])=>`<button class="${tab===n?"active":""}" onclick="go('${n}')"><b>${i}</b>${n}</button>`).join("");
+ let content="";
+ if(tab==="Home"){
+ content=`<div class="eyebrow">Your power, together</div><h1>Good morning, ${displayName.split(" ")[0]}</h1><p class="sub">Stay connected when battery life gets low.</p>
+ ${card(`<div style="text-align:center"><div class="eyebrow">Your battery</div><div class="ring"><div class="big">78%</div><div class="muted">DEMO READING</div><div style="font-size:23px;color:var(--green)">ϟ</div></div><div class="sub">Sample battery level for this preview</div><div class="actions">${btn("I'm running low","help()")}${btn("Find a friend","go('Friends')","secondary")}</div></div>`)}
+ <div class="sectiontitle">Friends who may need help</div>${friends.filter(f=>f.battery<=20).map(friendRow).join("")}
+ ${card(`<div class="name">Real-world charging, made easier</div><p class="sub">ChargeShare can help friends coordinate a charge with a cable or compatible wireless power-sharing feature. An app cannot transfer electricity by itself.</p>`)}
+ `;
+ } else if(tab==="Friends"){
+ const list=friends.filter(f=>f.name.toLowerCase().includes(query.toLowerCase()));
+ const f=friends.find(x=>x.id===selected);
+ content=`<div class="eyebrow">Your circle</div><h1>Friends</h1><p class="sub">Choose a friend to coordinate charging with.</p><input placeholder="Search friends..." value="${query.replace(/"/g,'&quot;')}" oninput="query=this.value;render()">${list.map(friendRow).join("")}
+ ${card(`<div class="name">Send a charging request</div><p class="sub">Selected: ${f.name} · ${f.battery}% battery</p><div class="sub">Choose a message amount</div><div class="picks">${[5,10,25,50].map(n=>btn(n+"%",`setAmount(${n})`,amount===n?"":"secondary")).join("")}</div>${btn("Send request", "sendRequest()")}`)}
+ `;
+ } else if(tab==="Requests"){
+ content=`<div class="eyebrow">Reach out</div><h1>Requests</h1><p class="sub">Let friends know when you need help finding a charger.</p>${card(`<div class="name">Need a charge?</div><p class="sub">Create a demo help request. Friends won't receive it until the online service is built.</p>${btn("Create help request","help()")}`)}${requests.length?requests.map(r=>card(`<div class="name">${r.title}</div><p class="sub">${r.detail}</p>`)).join(""):'<p class="sub" style="text-align:center;padding:25px">No requests yet.</p>'}`;
+ } else if(tab==="History"){
+ content=`<div class="eyebrow">Your activity</div><h1>History</h1><p class="sub">Requests you've tried in this preview.</p>${history.length?history.map(h=>card(`<div class="name">${h.title}</div><p class="sub">${h.detail}</p>`)).join(""):'<p class="sub" style="text-align:center;padding:25px">No activity yet. Try a request from Friends.</p>'}`;
+ } else {
+ content=`<div class="eyebrow">Make it yours</div><h1>Settings</h1><p class="sub">Manage your profile and sharing preferences.</p>${card(`<label class="sub" for="display">Display name</label><input id="display" value="${displayName.replace(/"/g,'&quot;')}" oninput="displayName=this.value"><div class="row between"><div><div class="name">Share battery status</div><div class="small">Demo preference, friends-only sharing planned</div></div>${btn(share?"On":"Off","toggleShare()","secondary")}</div><hr style="border:0;border-top:1px solid var(--line);margin:16px 0"><div class="name">Notifications</div><p class="sub">Coming in a later version</p><div class="name">Privacy & safety</div><p class="sub">Blocking, reporting, and account controls must be implemented before public launch.</p>`)}
+ ${card(`<div class="name">About ChargeShare</div><p class="sub">Browser prototype · Neon green edition</p><p class="sub">This demo does not connect real accounts, device battery sensors, push notifications, or other phones.</p>`)}
+ `;
+ }
+ app.innerHTML=(notice?`<div class="notice" onclick="dismissNotice()">${notice}　×</div>`:"")+content+`<footer>CHARGESHARE PREVIEW · SAMPLE DATA ONLY<br>Requests in this demo are not delivered to other people.</footer>`;
+}
+function go(t){tab=t;notice="";render()}
+function chooseFriend(id){selected=id;tab="Friends";render()}
+function setAmount(n){amount=n;render()}
+function help(){requests.unshift({title:"Help request created",detail:"Demo only — friends cannot receive this until an online service is connected."});notice="Your demo help request is ready. No notification was sent.";tab="Requests";render()}
+function sendRequest(){let f=friends.find(x=>x.id===selected);history.unshift({title:"Request prepared for "+f.name,detail:amount+"% help message · Demo only"});notice="Demo request prepared. Real charging requires compatible hardware or a cable.";tab="History";render()}
+function toggleShare(){share=!share;render()}
+function dismissNotice(){notice="";render()}
+render();
+</script>
+</body></html>
